@@ -1,0 +1,352 @@
+{% extends 'base.html' %}
+
+{% block title %}Ventes à Venir - AutoEnchères{% endblock %}
+
+{% block content %}
+<style>
+    /* Styles pour la barre latérale */
+    .sidebar-wrapper {
+        position: sticky;
+        top: 1rem;
+        height: calc(100vh - 2rem);
+        background: white;
+        border: 1px solid #dee2e6;
+        border-radius: 0.5rem;
+        display: flex;
+        flex-direction: column;
+        overflow: hidden;
+    }
+    
+    .sidebar-header { padding: 1rem; border-bottom: 1px solid #eee; background-color: #fff; }
+    .sidebar-content { flex-grow: 1; overflow-y: auto; padding: 1rem; }
+    .sidebar-footer { padding: 1rem; border-top: 1px solid #eee; background-color: #f8f9fa; }
+
+    /* Scrollbars */
+    .filter-box-scroll { 
+        max-height: 180px; 
+        overflow-y: auto; 
+        border: 1px solid #ced4da; 
+        padding: 0.5rem; 
+        border-radius: 4px; 
+        background: #fdfdfd; 
+    }
+    
+    .filter-box-scroll::-webkit-scrollbar { width: 6px; }
+    .filter-box-scroll::-webkit-scrollbar-thumb { background-color: #ccc; border-radius: 4px; }
+
+    /* Carte Véhicule */
+    .card-vehicule { border: 1px solid #e9ecef; border-radius: 8px; transition: all 0.2s; }
+    .card-vehicule:hover { transform: translateY(-3px); box-shadow: 0 10px 20px rgba(0,0,0,0.08); border-color: var(--color-primary); }
+    .card-vehicule .card-img-top { height: 200px; object-fit: cover; background-color: #eee; }
+    
+    .info-badge { font-size: 0.75rem; background: #f8f9fa; color: #555; padding: 2px 8px; border-radius: 4px; border: 1px solid #eee; display: inline-block; margin-right: 3px; margin-bottom: 3px; }
+</style>
+
+<div class="container-fluid mt-4">
+    <div class="row">
+        <!-- SIDEBAR FILTRES (Formulaire POST) -->
+        <aside class="col-lg-3 col-xl-2 mb-4">
+            <div class="sidebar-wrapper shadow-sm">
+                <!-- METHOD POST -->
+                <form method="POST" action="{{ url_for('index') }}" id="filterForm" class="d-flex flex-column h-100">
+                    
+                    <div class="sidebar-header d-flex justify-content-between align-items-center">
+                        <h5 class="fw-bold mb-0 text-primary"><i class="bi bi-funnel"></i> Filtres</h5>
+                        <a href="{{ url_for('reset_filters') }}" class="text-decoration-none small text-danger">
+                            <i class="bi bi-x-circle"></i> Reset
+                        </a>
+                    </div>
+
+                    <div class="sidebar-content">
+                        <!-- Recherche Texte -->
+                        <div class="mb-3">
+                            <label class="form-label small fw-bold text-uppercase text-muted">Mots-clés</label>
+                            <input type="text" name="keyword" class="form-control form-control-sm" value="{{ f_keyword }}" placeholder="Ex: Clio, Toit ouvrant...">
+                        </div>
+
+                         <!-- DATES DE VENTE (NOUVEAU) -->
+                         <div class="mb-3">
+                            <label class="form-label small fw-bold text-uppercase text-muted">Date de vente</label>
+                            <div class="d-flex gap-1">
+                                <input type="date" name="date_min" class="form-control form-control-sm" value="{{ f_date_min }}" title="Date début" onchange="this.form.submit()">
+                                <input type="date" name="date_max" class="form-control form-control-sm" value="{{ f_date_max }}" title="Date fin" onchange="this.form.submit()">
+                            </div>
+                        </div>
+                        
+                        <!-- Tri -->
+                        <div class="mb-3">
+                            <label class="form-label small fw-bold text-uppercase text-muted">Trier par</label>
+                            <select name="sort" class="form-select form-select-sm" onchange="this.form.submit()">
+                                <option value="date_vente_asc" {% if f_sort == 'date_vente_asc' %}selected{% endif %}>📅 Date (Proche)</option>
+                                <option value="marge_desc" {% if f_sort == 'marge_desc' %}selected{% endif %}>💰 Marge (Haute)</option>
+                                <option value="prix_asc" {% if f_sort == 'prix_asc' %}selected{% endif %}>€ Prix (Croissant)</option>
+                                <option value="km_asc" {% if f_sort == 'km_asc' %}selected{% endif %}>🚗 KM (Faible)</option>
+                            </select>
+                        </div>
+
+                        <hr class="my-2 text-muted opacity-25">
+
+                        <!-- MARQUE (Recherche JS incluse + Bouton Select All) -->
+                        <div class="mb-3">
+                            <label class="form-label small fw-bold text-uppercase text-muted">Marque</label>
+                            <input type="text" id="marqueSearchInput" class="form-control form-control-sm mb-1" placeholder="Filtrer la liste...">
+                            <button type="button" class="btn btn-sm btn-link text-decoration-none p-0 mb-1 small" onclick="toggleAll('marqueList')">Tout / Rien</button>
+                            <div class="filter-box-scroll" id="marqueList">
+                                {% for m in marques %}
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" name="marque" value="{{ m }}" id="m-{{ loop.index }}" 
+                                           {% if m in f_marques %}checked{% endif %}>
+                                    <label class="form-check-label small" for="m-{{ loop.index }}">{{ m }}</label>
+                                </div>
+                                {% endfor %}
+                            </div>
+                        </div>
+
+                        <!-- PRIX & MARGE -->
+                        <div class="mb-3">
+                            <label class="form-label small fw-bold text-uppercase text-muted">Budget Max</label>
+                            <div class="input-group input-group-sm">
+                                <input type="number" name="prix_max" class="form-control" placeholder="{{ ranges.prix_max }}" value="{{ f_prix_max }}" onchange="this.form.submit()">
+                                <span class="input-group-text">€</span>
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label small fw-bold text-uppercase text-muted">Marge Min Espérée</label>
+                            <div class="input-group input-group-sm">
+                                <input type="number" name="marge_min" class="form-control" placeholder="0" value="{{ f_marge_min }}" onchange="this.form.submit()">
+                                <span class="input-group-text">€</span>
+                            </div>
+                        </div>
+
+                        <hr class="my-2 text-muted opacity-25">
+
+                        <!-- KM & ANNÉE -->
+                        <div class="mb-3">
+                            <label class="form-label small fw-bold text-uppercase text-muted">Kilométrage Max</label>
+                            <input type="number" name="km_max" class="form-control form-control-sm" placeholder="{{ ranges.km_max }}" value="{{ f_km_max }}" onchange="this.form.submit()">
+                        </div>
+                        <div class="row g-1 mb-3">
+                            <div class="col-6">
+                                <label class="form-label small fw-bold text-uppercase text-muted">Année Min</label>
+                                <input type="number" name="annee_min" class="form-control form-control-sm" placeholder="{{ ranges.annee_min }}" value="{{ f_annee_min }}" onchange="this.form.submit()">
+                            </div>
+                            <div class="col-6">
+                                <label class="form-label small fw-bold text-uppercase text-muted">Max</label>
+                                <input type="number" name="annee_max" class="form-control form-control-sm" placeholder="{{ ranges.annee_max }}" value="{{ f_annee_max }}" onchange="this.form.submit()">
+                            </div>
+                        </div>
+
+                        <!-- CARBURANT -->
+                        <div class="mb-3">
+                            <div class="d-flex justify-content-between">
+                                <label class="form-label small fw-bold text-uppercase text-muted">Énergie</label>
+                                <button class="btn btn-link btn-sm p-0 text-decoration-none" type="button" data-bs-toggle="collapse" data-bs-target="#collapseEnergy">Voir</button>
+                            </div>
+                            <div class="collapse show" id="collapseEnergy">
+                                <div class="filter-box-scroll" style="max-height: 120px;">
+                                    {% for e in energies %}
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="checkbox" name="energie" value="{{ e }}" id="e-{{ loop.index }}" {% if e in f_energies %}checked{% endif %}>
+                                        <label class="form-check-label small" for="e-{{ loop.index }}">{{ e }}</label>
+                                    </div>
+                                    {% endfor %}
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- BOITE AVEC OPTION 'None' -->
+                        <div class="mb-3">
+                            <label class="form-label small fw-bold text-uppercase text-muted">Boîte</label>
+                            <div class="filter-box-scroll" style="max-height: 120px;">
+                                <!-- Option Manuelle pour 'Non spécifié' -->
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" name="boite" value="None" id="b-none" {% if 'None' in f_boites %}checked{% endif %}>
+                                    <label class="form-check-label small fst-italic text-muted" for="b-none">Non spécifié</label>
+                                </div>
+                                
+                                {% for b in boites %}
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" name="boite" value="{{ b }}" id="b-{{ loop.index }}" {% if b in f_boites %}checked{% endif %}>
+                                    <label class="form-check-label small" for="b-{{ loop.index }}">{{ b }}</label>
+                                </div>
+                                {% endfor %}
+                            </div>
+                        </div>
+                        
+                         <!-- MAISONS DE VENTE (Recherche + Select All) -->
+                         <div class="mb-3">
+                            <label class="form-label small fw-bold text-uppercase text-muted">Maison de vente</label>
+                            <input type="text" id="maisonSearchInput" class="form-control form-control-sm mb-1" placeholder="Chercher...">
+                            <button type="button" class="btn btn-sm btn-link text-decoration-none p-0 mb-1 small" onclick="toggleAll('maisonList')">Tout / Rien</button>
+                            <div class="filter-box-scroll" id="maisonList" style="max-height: 120px;">
+                                {% for m in maisons %}
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" name="maison_vente" value="{{ m }}" id="mv-{{ loop.index }}" {% if m in f_maisons %}checked{% endif %}>
+                                    <label class="form-check-label small" for="mv-{{ loop.index }}">{{ m }}</label>
+                                </div>
+                                {% endfor %}
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="sidebar-footer">
+                        <button type="submit" class="btn btn-primary w-100 fw-bold shadow-sm">
+                            Appliquer les filtres
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </aside>
+
+        <!-- CONTENU PRINCIPAL -->
+        <main class="col-lg-9 col-xl-10">
+            <div class="d-flex justify-content-between align-items-center mb-3 bg-white p-3 rounded border shadow-sm">
+                <div>
+                    <h5 class="mb-0 fw-bold">{{ total_annonces }} Résultats</h5>
+                    {% if f_marques or f_keyword or f_prix_max %}
+                        <small class="text-muted">Filtres actifs: 
+                            {% if f_keyword %}"{{ f_keyword }}" {% endif %}
+                            {% for m in f_marques %}<span class="badge bg-secondary">{{ m }}</span> {% endfor %}
+                        </small>
+                    {% endif %}
+                </div>
+                
+                <!-- Pagination Haut (Liée à la Session) -->
+                {% if total_pages > 1 %}
+                <nav>
+                    <ul class="pagination pagination-sm m-0">
+                        <li class="page-item {% if current_page == 1 %}disabled{% endif %}">
+                            <a class="page-link" href="{{ url_for('index', page=current_page - 1) }}">Précédent</a>
+                        </li>
+                        <li class="page-item active"><span class="page-link">{{ current_page }} / {{ total_pages }}</span></li>
+                        <li class="page-item {% if current_page == total_pages %}disabled{% endif %}">
+                            <a class="page-link" href="{{ url_for('index', page=current_page + 1) }}">Suivant</a>
+                        </li>
+                    </ul>
+                </nav>
+                {% endif %}
+            </div>
+
+            <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 row-cols-xl-4 g-4">
+                {% for a in annonces %}
+                <div class="col">
+                    <div class="card h-100 card-vehicule">
+                        <a href="{{ url_for('detail', annonce_id=a.id) }}" class="text-decoration-none text-dark">
+                            <div class="position-relative">
+                                <img src="{{ a.lien_image_vehicule }}" class="card-img-top" loading="lazy" alt="Véhicule" onerror="this.src='https://placehold.co/400x300?text=Pas+d+image';">
+                                <span class="position-absolute top-0 end-0 badge bg-dark m-2 opacity-75">{{ a.maison_vente }}</span>
+                            </div>
+                            <div class="card-body d-flex flex-column p-3">
+                                <h6 class="card-title fw-bold text-truncate" title="{{ a.titre_annonce }}">{{ a.titre_annonce }}</h6>
+                                
+                                <div class="mb-2">
+                                    <span class="info-badge">{{ a.annee_mise_en_service }}</span>
+                                    <span class="info-badge">{{ a.kilometrage | format_number }} km</span>
+                                    <span class="info-badge">{{ a.energie }}</span>
+                                    <span class="info-badge">{{ a.boite_de_vitesse }}</span>
+                                </div>
+                                
+                                <div class="mt-auto pt-2 border-top d-flex justify-content-between align-items-center">
+                                    <div>
+                                        <div class="text-muted small" style="font-size: 0.7rem;">Estimation (frais incl.)</div>
+                                        <div class="fw-bold text-primary">{{ a.prix_estimation | format_number }} €</div>
+                                    </div>
+                                    <div class="text-end">
+                                        <div class="text-muted small" style="font-size: 0.7rem;">Marge Est.</div>
+                                        <div class="fw-bold {% if a.marge is not none and a.marge > 0 %}text-success{% elif a.marge is not none %}text-danger{% else %}text-muted{% endif %}">
+                                            {% if a.marge is not none and a.marge > 0 %}+{% endif %}{{ a.marge | format_number }} €
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="text-center mt-2">
+                                    <small class="text-muted fst-italic"><i class="bi bi-clock"></i> {{ a.date_vente_ts | format_datetime }}</small>
+                                </div>
+                            </div>
+                        </a>
+                    </div>
+                </div>
+                {% else %}
+                <div class="col-12 py-5 text-center">
+                    <div class="text-muted mb-3"><i class="bi bi-search display-4"></i></div>
+                    <h3>Aucun véhicule trouvé</h3>
+                    <p>Essayez de modifier vos filtres.</p>
+                    <a href="{{ url_for('reset_filters') }}" class="btn btn-outline-primary">Réinitialiser tout</a>
+                </div>
+                {% endfor %}
+            </div>
+
+            <!-- Pagination Bas -->
+            {% if total_pages > 1 %}
+            <nav class="my-4">
+                <ul class="pagination justify-content-center">
+                    <li class="page-item {% if current_page == 1 %}disabled{% endif %}">
+                        <a class="page-link" href="{{ url_for('index', page=current_page - 1) }}">«</a>
+                    </li>
+
+                    {% for p in range(1, total_pages + 1) %}
+                        {% if p == 1 or p == total_pages or (p >= current_page - 2 and p <= current_page + 2) %}
+                            <li class="page-item {% if p == current_page %}active{% endif %}">
+                                <a class="page-link" href="{{ url_for('index', page=p) }}">{{ p }}</a>
+                            </li>
+                        {% elif p == current_page - 3 or p == current_page + 3 %}
+                            <li class="page-item disabled"><span class="page-link">...</span></li>
+                        {% endif %}
+                    {% endfor %}
+
+                    <li class="page-item {% if current_page == total_pages %}disabled{% endif %}">
+                        <a class="page-link" href="{{ url_for('index', page=current_page + 1) }}">»</a>
+                    </li>
+                </ul>
+            </nav>
+            {% endif %}
+        </main>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        // Fonction de recherche rapide dans les listes (Marque / Maison)
+        function setupFilterSearch(inputId, listId) {
+            const input = document.getElementById(inputId);
+            const list = document.getElementById(listId);
+            if (!input || !list) return;
+
+            input.addEventListener('keyup', function() {
+                const filter = this.value.toLowerCase();
+                const items = list.querySelectorAll('.form-check');
+                items.forEach(function(item) {
+                    const label = item.querySelector('label').textContent.toLowerCase();
+                    item.style.display = label.includes(filter) ? "" : "none";
+                });
+            });
+        }
+        setupFilterSearch('marqueSearchInput', 'marqueList');
+        setupFilterSearch('maisonSearchInput', 'maisonList');
+    });
+
+    // Fonction pour Tout Sélectionner / Tout Désélectionner
+    function toggleAll(containerId) {
+        const container = document.getElementById(containerId);
+        if(!container) return;
+        
+        // On récupère toutes les checkboxes VISIBLES (pour respecter la recherche si active)
+        const allCheckboxes = Array.from(container.querySelectorAll('input[type="checkbox"]'));
+        const visibleCheckboxes = allCheckboxes.filter(cb => cb.parentElement.style.display !== 'none');
+        
+        if(visibleCheckboxes.length === 0) return;
+
+        // On détermine l'état cible basé sur le premier élément visible
+        // Si le premier est coché, on décoche tout. Sinon, on coche tout.
+        const targetState = !visibleCheckboxes[0].checked;
+        
+        visibleCheckboxes.forEach(cb => {
+            cb.checked = targetState;
+        });
+
+        // Optionnel : Soumettre le formulaire automatiquement
+        // document.getElementById('filterForm').submit();
+    }
+</script>
+{% endblock %}

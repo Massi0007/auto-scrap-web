@@ -1,0 +1,177 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ annonce['marque_annonce'] }} {{ annonce['modele_annonce'] }}{% endblock %}
+
+{% block content %}
+<div class="container mt-4 mb-5">
+    <!-- En-tête -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h2 class="mb-0 fw-bold text-dark">{{ annonce['marque_annonce'] }} {{ annonce['modele_annonce'] }}</h2>
+            <p class="text-muted mb-0 small">Lot n°{{ annonce['num_lot'] }} • Vente du {{ annonce['date_debut'] | format_datetime }}</p>
+        </div>
+        <a href="{{ url_for('index') }}" class="btn btn-outline-secondary btn-sm">
+            <i class="bi bi-arrow-left"></i> Retour
+        </a>
+    </div>
+
+    <div class="row">
+        <!-- COLONNE GAUCHE : Photos & Infos -->
+        <div class="col-lg-8">
+            <!-- Image Principale -->
+            <div class="card border-0 shadow-sm mb-4 overflow-hidden">
+                <img src="{{ annonce['lien_image_vehicule'] }}" class="img-fluid w-100" style="max-height: 500px; object-fit: cover;" alt="Image principale" onerror="this.src='https://placehold.co/800x500?text=Image+Non+Disponible';">
+            </div>
+
+            <!-- Fiche Technique -->
+            <div class="card border-0 shadow-sm mb-4">
+                <div class="card-header bg-white fw-bold py-3"><i class="bi bi-car-front"></i> Caractéristiques</div>
+                <div class="card-body">
+                    <div class="row g-3">
+                        <div class="col-6 col-md-3">
+                            <small class="text-muted d-block text-uppercase" style="font-size:0.7rem;">Marque</small>
+                            <span class="fw-bold">{{ annonce['marque_annonce'] or '-' }}</span>
+                        </div>
+                        <div class="col-6 col-md-3">
+                            <small class="text-muted d-block text-uppercase" style="font-size:0.7rem;">Modèle</small>
+                            <span class="fw-bold">{{ annonce['modele_annonce'] or '-' }}</span>
+                        </div>
+                        <div class="col-6 col-md-3">
+                            <small class="text-muted d-block text-uppercase" style="font-size:0.7rem;">Année</small>
+                            <span class="fw-bold">{{ annonce['annee'] or '-' }}</span>
+                        </div>
+                        <div class="col-6 col-md-3">
+                            <small class="text-muted d-block text-uppercase" style="font-size:0.7rem;">Kilométrage</small>
+                            <span class="fw-bold">{% if annonce.kilometrage %}{{ annonce.kilometrage | format_number }} km{% else %}-{% endif %}</span>
+                        </div>
+                        <div class="col-6 col-md-3">
+                            <small class="text-muted d-block text-uppercase" style="font-size:0.7rem;">Énergie</small>
+                            <span class="fw-bold">{{ annonce['energie'] or '-' }}</span>
+                        </div>
+                        <div class="col-6 col-md-3">
+                            <small class="text-muted d-block text-uppercase" style="font-size:0.7rem;">Boîte</small>
+                            <span class="fw-bold">{{ annonce['boite_de_vitesse'] or '-' }}</span>
+                        </div>
+                        <div class="col-6 col-md-3">
+                            <small class="text-muted d-block text-uppercase" style="font-size:0.7rem;">Puissance</small>
+                            <span class="fw-bold">{{ annonce['puissance_fiscale'] or '-' }} CV</span>
+                        </div>
+                        <div class="col-6 col-md-3">
+                            <small class="text-muted d-block text-uppercase" style="font-size:0.7rem;">Mise en circ.</small>
+                            <span class="fw-bold">{{ annonce['date_mise_en_service'] or '-' }}</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Description -->
+            <div class="card border-0 shadow-sm mb-4">
+                <div class="card-header bg-white fw-bold py-3"><i class="bi bi-file-text"></i> Description</div>
+                <div class="card-body">
+                    <p class="text-muted mb-0" style="white-space: pre-line;">{{ annonce['description'] or 'Aucune description disponible.' }}</p>
+                    
+                    {% if annonce.remarque_importante %}
+                    <div class="alert alert-warning mt-3 mb-0 d-flex align-items-center">
+                        <i class="bi bi-exclamation-triangle-fill me-2 fs-4"></i>
+                        <div>
+                            <strong>Attention :</strong> {{ annonce.remarque_importante }}
+                        </div>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- GALERIE PHOTOS COMPLÈTE -->
+            {# Verification de sécurité pour éviter le crash si la colonne n'existe pas #}
+            {% if annonce.keys() and 'images_all' in annonce.keys() and annonce.images_all %}
+            <div class="card border-0 shadow-sm mb-4">
+                <div class="card-header bg-white fw-bold py-3">
+                    <i class="bi bi-images"></i> Galerie Photos
+                </div>
+                <div class="card-body">
+                    <div class="row g-2">
+                        {% set gallery = annonce.images_all.split(' | ') %}
+                        {% for img_url in gallery %}
+                            {% if 'http' in img_url %}
+                            <div class="col-6 col-md-4 col-lg-3">
+                                <a href="{{ img_url }}" target="_blank">
+                                    <img src="{{ img_url }}" class="img-fluid rounded border w-100" style="height: 150px; object-fit: cover;" loading="lazy" alt="Photo galerie">
+                                </a>
+                            </div>
+                            {% endif %}
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+
+        <!-- COLONNE DROITE : Analyse Financière (Sticky) -->
+        <div class="col-lg-4">
+            <div class="card shadow border-0" style="position: sticky; top: 1.5rem;">
+                <div class="card-header bg-primary text-white text-center py-3">
+                    <h5 class="mb-0 fw-bold">Analyse Financière</h5>
+                </div>
+                <div class="card-body">
+                    
+                    <!-- Prix Estimation -->
+                    <div class="text-center mb-4">
+                        <small class="text-muted text-uppercase fw-bold">Estimation Totale (IA + Frais)</small>
+                        <div class="display-6 fw-bold text-dark mt-1">
+                            {% if annonce.prix_max_frais_inclus %}
+                                {{ annonce.prix_max_frais_inclus | format_number }} €
+                            {% else %}
+                                <span class="text-muted">N/A</span>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    <!-- Comparatif Marché -->
+                    <div class="bg-light p-3 rounded mb-4">
+                        <div class="d-flex justify-content-between mb-2">
+                            <span class="text-muted small">Cote Marché Basse</span>
+                            <span class="fw-bold">{{ annonce['fourchette_prix_marche'] or 'Non défini' }}</span>
+                        </div>
+                        <div class="d-flex justify-content-between align-items-center pt-2 border-top">
+                            <span class="text-muted small">Marge Potentielle</span>
+                            <span class="fs-5 fw-bold {% if (annonce.marge_estimee_min or 0) > 0 %}text-success{% else %}text-danger{% endif %}">
+                                {% if annonce.marge_estimee_min is not none %}
+                                    {% if annonce.marge_estimee_min > 0 %}+{% endif %}{{ annonce.marge_estimee_min | format_number }} €
+                                {% else %}
+                                    -
+                                {% endif %}
+                            </span>
+                        </div>
+                    </div>
+
+                    <!-- Infos Vente -->
+                    <div class="mb-4 small">
+                        <div class="d-flex align-items-center mb-2">
+                            <i class="bi bi-geo-alt text-primary me-2"></i>
+                            <span class="text-truncate">{{ annonce.ville or 'Ville inconnue' }}</span>
+                        </div>
+                        <div class="d-flex align-items-center mb-2">
+                            <i class="bi bi-bank text-primary me-2"></i>
+                            <span class="text-truncate" title="{{ annonce.maison_vente }}">{{ annonce.maison_vente }}</span>
+                        </div>
+                        <div class="d-flex align-items-center">
+                            <i class="bi bi-calendar-event text-primary me-2"></i>
+                            <span>{{ annonce.date_debut | format_datetime }}</span>
+                        </div>
+                    </div>
+
+                    <!-- Boutons d'action -->
+                    <div class="d-grid gap-2">
+                        <a href="{{ annonce['url_web'] }}" target="_blank" class="btn btn-outline-primary">
+                            <i class="bi bi-box-arrow-up-right"></i> Voir l'annonce officielle
+                        </a>
+                        <a href="{{ build_leboncoin_url(annonce) }}" target="_blank" class="btn btn-leboncoin text-white fw-bold">
+                            <i class="bi bi-search"></i> Comparer sur LeBonCoin
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
