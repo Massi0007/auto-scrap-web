@@ -169,7 +169,7 @@ def index():
             MAX(kilometrage) as max_km, 
             MAX(prix_max_frais_inclus) as max_prix 
         FROM vue_details_ventes_avenir 
-        WHERE annee ~ '^\d{4}$'
+        WHERE annee::text ~ '^\d{4}$'
     """)
     ranges = cursor.fetchone()
     r_annee_min = ranges['min_an'] if ranges['min_an'] else 1990
