@@ -12,7 +12,7 @@ app.jinja_env.add_extension('jinja2.ext.do')
 # --- CONFIGURATION SUPABASE ---
 # ⚠️ Ta chaîne de connexion Pooler (IPv4)
 # Remplace PWDDB112358%40%40 par ton mot de passe si ce n'est pas celui-ci
-SUPABASE_DSN = "postgresql://postgres.kbmersivclctgwenawbl:PWDDB112358%40%40@aws-1-eu-central-1.pooler.supabase.com:6543/postgres"
+SUPABASE_DSN = "postgresql://postgres.kbmersivclctgwenawbl:PWDDB112358%40%40@aws-1-eu-central-1.pooler.supabase.com:6543/postgres?tcp_user_timeout=10000&keepalives=1&keepalives_idle=30&keepalives_interval=10&keepalives_count=5"
 
 # Initialisation du Pool de Connexion (Global)
 # minconn=1, maxconn=20
@@ -24,10 +24,19 @@ except Exception as e:
     exit()
 
 def get_db():
-    """Récupère une connexion depuis le pool."""
+    """Récupère une connexion valide depuis le pool."""
     if 'db' not in g:
-        g.db = db_pool.getconn()
-        # On configure le curseur pour qu'il renvoie des dictionnaires (comme sqlite3.Row)
+        try:
+            conn = db_pool.getconn()
+            # Test de la connexion : si elle est morte, on l'enlève et on en prend une nouvelle
+            with conn.cursor() as cur:
+                cur.execute('SELECT 1')
+        except (psycopg2.OperationalError, psycopg2.InterfaceError):
+            # Si la connexion est expirée, on la ferme proprement et on en crée une nouvelle
+            db_pool.putconn(conn, close=True)
+            conn = db_pool.getconn()
+        
+        g.db = conn
         g.db.cursor_factory = extras.RealDictCursor
     return g.db
 
