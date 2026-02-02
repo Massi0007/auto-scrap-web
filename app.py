@@ -162,7 +162,15 @@ def index():
     cursor.execute("SELECT DISTINCT boite_de_vitesse FROM vue_details_ventes_avenir WHERE boite_de_vitesse IS NOT NULL ORDER BY 1")
     boites = [r['boite_de_vitesse'] for r in cursor.fetchall()]
     
-    cursor.execute("SELECT MIN(annee) as min_an, MAX(annee) as max_an, MAX(kilometrage) as max_km, MAX(prix_max_frais_inclus) as max_prix FROM vue_details_ventes_avenir")
+    cursor.execute("""
+        SELECT 
+            MIN(annee::int) as min_an, 
+            MAX(annee::int) as max_an, 
+            MAX(kilometrage) as max_km, 
+            MAX(prix_max_frais_inclus) as max_prix 
+        FROM vue_details_ventes_avenir 
+        WHERE annee ~ '^\d{4}$'
+    """)
     ranges = cursor.fetchone()
     r_annee_min = ranges['min_an'] if ranges['min_an'] else 1990
     r_annee_max = ranges['max_an'] if ranges['max_an'] else datetime.now().year
