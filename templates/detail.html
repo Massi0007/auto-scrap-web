@@ -1,101 +1,71 @@
 {% extends 'base.html' %}
 
-{% block title %}{{ annonce['marque_annonce'] }} {{ annonce['modele_annonce'] }}{% endblock %}
+{% block title %}{{ annonce['titre_annonce'] }} - Analyse{% endblock %}
 
 {% block content %}
-<div class="container mt-4 mb-5">
-    <!-- En-tête -->
+{# --- CALCULS JINJA ROBUSTES --- #}
+{% set prix_total = annonce.prix_max_frais_inclus | default(0) | float %}
+{% set marge = annonce.marge_estimee_min | default(0) | float %}
+{% set roi = 0 %}
+{% if prix_total > 0 %}
+    {% set roi = (marge / prix_total) * 100 %}
+{% endif %}
+
+<div class="container py-4 mb-5">
+    <!-- Header -->
     <div class="d-flex justify-content-between align-items-center mb-4">
         <div>
-            <h2 class="mb-0 fw-bold text-dark">{{ annonce['marque_annonce'] }} {{ annonce['modele_annonce'] }}</h2>
-            <p class="text-muted mb-0 small">Lot n°{{ annonce['num_lot'] }} • Vente du {{ annonce['date_debut'] | format_datetime }}</p>
+            <h2 class="fw-bold mb-0">{{ annonce['titre_annonce'] }}</h2>
+            <div class="text-muted">
+                Lot n°{{ annonce['num_lot'] }} • <i class="bi bi-geo-alt"></i> {{ annonce['ville'] }} • {{ annonce['date_debut'] | format_datetime }}
+            </div>
         </div>
-        <a href="{{ url_for('index') }}" class="btn btn-outline-secondary btn-sm">
+        <a href="{{ url_for('index') }}" class="btn btn-outline-secondary">
             <i class="bi bi-arrow-left"></i> Retour
         </a>
     </div>
 
-    <div class="row">
-        <!-- COLONNE GAUCHE : Photos & Infos -->
-        <div class="col-lg-8">
+    <div class="row g-4">
+        <!-- COLONNE GAUCHE : VISUELS & INFOS -->
+        <div class="col-lg-7">
             <!-- Image Principale -->
-            <div class="card border-0 shadow-sm mb-4 overflow-hidden">
-                <img src="{{ annonce['lien_image_vehicule'] }}" class="img-fluid w-100" style="max-height: 500px; object-fit: cover;" alt="Image principale" onerror="this.src='https://placehold.co/800x500?text=Image+Non+Disponible';">
+            <div class="card border-0 shadow-sm overflow-hidden mb-4">
+                <img src="{{ annonce['lien_image_vehicule'] }}" class="w-100" style="height: 450px; object-fit: cover;" alt="Vehicule" onerror="this.src='https://placehold.co/800x500?text=Image+Manquante';">
             </div>
 
             <!-- Fiche Technique -->
-            <div class="card border-0 shadow-sm mb-4">
-                <div class="card-header bg-white fw-bold py-3"><i class="bi bi-car-front"></i> Caractéristiques</div>
+            <div class="card mb-4">
+                <div class="card-header bg-white fw-bold"><i class="bi bi-car-front-fill me-2"></i>Caractéristiques</div>
                 <div class="card-body">
-                    <div class="row g-3">
-                        <div class="col-6 col-md-3">
-                            <small class="text-muted d-block text-uppercase" style="font-size:0.7rem;">Marque</small>
-                            <span class="fw-bold">{{ annonce['marque_annonce'] or '-' }}</span>
-                        </div>
-                        <div class="col-6 col-md-3">
-                            <small class="text-muted d-block text-uppercase" style="font-size:0.7rem;">Modèle</small>
-                            <span class="fw-bold">{{ annonce['modele_annonce'] or '-' }}</span>
-                        </div>
-                        <div class="col-6 col-md-3">
-                            <small class="text-muted d-block text-uppercase" style="font-size:0.7rem;">Année</small>
-                            <span class="fw-bold">{{ annonce['annee'] or '-' }}</span>
-                        </div>
-                        <div class="col-6 col-md-3">
-                            <small class="text-muted d-block text-uppercase" style="font-size:0.7rem;">Kilométrage</small>
-                            <span class="fw-bold">{% if annonce.kilometrage %}{{ annonce.kilometrage | format_number }} km{% else %}-{% endif %}</span>
-                        </div>
-                        <div class="col-6 col-md-3">
-                            <small class="text-muted d-block text-uppercase" style="font-size:0.7rem;">Énergie</small>
-                            <span class="fw-bold">{{ annonce['energie'] or '-' }}</span>
-                        </div>
-                        <div class="col-6 col-md-3">
-                            <small class="text-muted d-block text-uppercase" style="font-size:0.7rem;">Boîte</small>
-                            <span class="fw-bold">{{ annonce['boite_de_vitesse'] or '-' }}</span>
-                        </div>
-                        <div class="col-6 col-md-3">
-                            <small class="text-muted d-block text-uppercase" style="font-size:0.7rem;">Puissance</small>
-                            <span class="fw-bold">{{ annonce['puissance_fiscale'] or '-' }} CV</span>
-                        </div>
-                        <div class="col-6 col-md-3">
-                            <small class="text-muted d-block text-uppercase" style="font-size:0.7rem;">Mise en circ.</small>
-                            <span class="fw-bold">{{ annonce['date_mise_en_service'] or '-' }}</span>
-                        </div>
+                    <div class="row row-cols-2 row-cols-md-3 g-3">
+                        <div><small class="text-muted d-block text-uppercase" style="font-size:0.7rem">Marque</small> <strong>{{ annonce.marque_annonce }}</strong></div>
+                        <div><small class="text-muted d-block text-uppercase" style="font-size:0.7rem">Modèle</small> <strong>{{ annonce.modele_annonce }}</strong></div>
+                        <div><small class="text-muted d-block text-uppercase" style="font-size:0.7rem">Année</small> <strong>{{ annonce.annee }}</strong></div>
+                        <div><small class="text-muted d-block text-uppercase" style="font-size:0.7rem">KM</small> <strong>{{ annonce.kilometrage | format_number }}</strong></div>
+                        <div><small class="text-muted d-block text-uppercase" style="font-size:0.7rem">Énergie</small> <strong>{{ annonce.energie }}</strong></div>
+                        <div><small class="text-muted d-block text-uppercase" style="font-size:0.7rem">Boîte</small> <strong>{{ annonce.boite_de_vitesse }}</strong></div>
+                        <div><small class="text-muted d-block text-uppercase" style="font-size:0.7rem">Mise en Circ.</small> <strong>{{ annonce.date_mise_en_service }}</strong></div>
+                        <div><small class="text-muted d-block text-uppercase" style="font-size:0.7rem">Vendeur</small> <strong class="text-truncate d-block">{{ annonce.maison_vente }}</strong></div>
                     </div>
                 </div>
             </div>
 
-            <!-- Description -->
-            <div class="card border-0 shadow-sm mb-4">
-                <div class="card-header bg-white fw-bold py-3"><i class="bi bi-file-text"></i> Description</div>
-                <div class="card-body">
-                    <p class="text-muted mb-0" style="white-space: pre-line;">{{ annonce['description'] or 'Aucune description disponible.' }}</p>
-                    
-                    {% if annonce.remarque_importante %}
-                    <div class="alert alert-warning mt-3 mb-0 d-flex align-items-center">
-                        <i class="bi bi-exclamation-triangle-fill me-2 fs-4"></i>
-                        <div>
-                            <strong>Attention :</strong> {{ annonce.remarque_importante }}
-                        </div>
-                    </div>
-                    {% endif %}
-                </div>
-            </div>
-
-            <!-- GALERIE PHOTOS COMPLÈTE -->
-            {# Verification de sécurité pour éviter le crash si la colonne n'existe pas #}
-            {% if annonce.keys() and 'images_all' in annonce.keys() and annonce.images_all %}
+            <!-- GALERIE PHOTOS COMPLÈTE (Restaurée) -->
+            {% if annonce.images_all %}
             <div class="card border-0 shadow-sm mb-4">
                 <div class="card-header bg-white fw-bold py-3">
-                    <i class="bi bi-images"></i> Galerie Photos
+                    <i class="bi bi-images me-2"></i> Galerie Photos
                 </div>
                 <div class="card-body">
                     <div class="row g-2">
+                        {# On sépare les URLS par le séparateur ' | ' #}
                         {% set gallery = annonce.images_all.split(' | ') %}
                         {% for img_url in gallery %}
+                            {# Petite sécurité pour ne pas afficher d'images vides #}
                             {% if 'http' in img_url %}
                             <div class="col-6 col-md-4 col-lg-3">
                                 <a href="{{ img_url }}" target="_blank">
-                                    <img src="{{ img_url }}" class="img-fluid rounded border w-100" style="height: 150px; object-fit: cover;" loading="lazy" alt="Photo galerie">
+                                    <img src="{{ img_url }}" class="img-fluid rounded border w-100" style="height: 120px; object-fit: cover;" loading="lazy" alt="Photo galerie">
                                 </a>
                             </div>
                             {% endif %}
@@ -104,74 +74,119 @@
                 </div>
             </div>
             {% endif %}
+            
+            <div class="alert alert-light border">
+                <strong>Description :</strong><br>
+                <small class="text-muted" style="white-space: pre-line;">{{ annonce.description }}</small>
+            </div>
         </div>
 
-        <!-- COLONNE DROITE : Analyse Financière (Sticky) -->
-        <div class="col-lg-4">
-            <div class="card shadow border-0" style="position: sticky; top: 1.5rem;">
-                <div class="card-header bg-primary text-white text-center py-3">
-                    <h5 class="mb-0 fw-bold">Analyse Financière</h5>
+        <!-- COLONNE DROITE : ANALYSE FINANCIÈRE (Sticky) -->
+        <div class="col-lg-5">
+            <div style="position: sticky; top: 1rem;">
+                <!-- Box KPI Principaux -->
+                <div class="card border-primary mb-4 shadow-sm">
+                    <div class="card-body text-center">
+                        <h6 class="text-uppercase text-muted fw-bold mb-3">Analyse de Rentabilité</h6>
+                        
+                        <div class="row align-items-center">
+                            <div class="col-6 border-end">
+                                <small class="text-muted">Coût Total Est.</small>
+                                <div class="fs-4 fw-bold text-dark">{{ prix_total | format_number }} €</div>
+                                <small class="text-muted d-block" style="font-size: 0.7rem;">(Frais Inclus)</small>
+                            </div>
+                            <div class="col-6">
+                                <small class="text-muted">Marge Potentielle</small>
+                                <div class="fs-3 fw-bold {% if roi > 15 %}text-success{% else %}text-primary{% endif %}">
+                                    +{{ marge | format_number }} €
+                                </div>
+                                <span class="badge {% if roi > 15 %}bg-success{% else %}bg-warning text-dark{% endif %}">
+                                    ROI: {{ roi | format_percent }}
+                                </span>
+                            </div>
+                        </div>
+                    </div>
                 </div>
-                <div class="card-body">
-                    
-                    <!-- Prix Estimation -->
-                    <div class="text-center mb-4">
-                        <small class="text-muted text-uppercase fw-bold">Estimation Totale (IA + Frais)</small>
-                        <div class="display-6 fw-bold text-dark mt-1">
-                            {% if annonce.prix_max_frais_inclus %}
-                                {{ annonce.prix_max_frais_inclus | format_number }} €
-                            {% else %}
-                                <span class="text-muted">N/A</span>
-                            {% endif %}
-                        </div>
-                    </div>
 
-                    <!-- Comparatif Marché -->
-                    <div class="bg-light p-3 rounded mb-4">
-                        <div class="d-flex justify-content-between mb-2">
-                            <span class="text-muted small">Cote Marché Basse</span>
-                            <span class="fw-bold">{{ annonce['fourchette_prix_marche'] or 'Non défini' }}</span>
-                        </div>
-                        <div class="d-flex justify-content-between align-items-center pt-2 border-top">
-                            <span class="text-muted small">Marge Potentielle</span>
-                            <span class="fs-5 fw-bold {% if (annonce.marge_estimee_min or 0) > 0 %}text-success{% else %}text-danger{% endif %}">
-                                {% if annonce.marge_estimee_min is not none %}
-                                    {% if annonce.marge_estimee_min > 0 %}+{% endif %}{{ annonce.marge_estimee_min | format_number }} €
-                                {% else %}
-                                    -
-                                {% endif %}
-                            </span>
+                <!-- GRAPHIQUE CHART.JS -->
+                <div class="card mb-4">
+                    <div class="card-header bg-white fw-bold">Positionnement Marché</div>
+                    <div class="card-body">
+                        <canvas id="marketChart" height="200"></canvas>
+                        <div class="text-center mt-3 small text-muted">
+                            Cote estimée : <strong>{{ (prix_total + marge) | format_number }} €</strong>
                         </div>
                     </div>
+                </div>
 
-                    <!-- Infos Vente -->
-                    <div class="mb-4 small">
-                        <div class="d-flex align-items-center mb-2">
-                            <i class="bi bi-geo-alt text-primary me-2"></i>
-                            <span class="text-truncate">{{ annonce.ville or 'Ville inconnue' }}</span>
-                        </div>
-                        <div class="d-flex align-items-center mb-2">
-                            <i class="bi bi-bank text-primary me-2"></i>
-                            <span class="text-truncate" title="{{ annonce.maison_vente }}">{{ annonce.maison_vente }}</span>
-                        </div>
-                        <div class="d-flex align-items-center">
-                            <i class="bi bi-calendar-event text-primary me-2"></i>
-                            <span>{{ annonce.date_debut | format_datetime }}</span>
-                        </div>
-                    </div>
-
-                    <!-- Boutons d'action -->
-                    <div class="d-grid gap-2">
-                        <a href="{{ annonce['url_web'] }}" target="_blank" class="btn btn-outline-primary">
-                            <i class="bi bi-box-arrow-up-right"></i> Voir l'annonce officielle
-                        </a>
-                        <a href="{{ build_leboncoin_url(annonce) }}" target="_blank" class="btn btn-leboncoin text-white fw-bold">
-                            <i class="bi bi-search"></i> Comparer sur LeBonCoin
-                        </a>
-                    </div>
+                <!-- Liens d'action -->
+                <div class="d-grid gap-2">
+                    <a href="{{ annonce['url_web'] }}" target="_blank" class="btn btn-primary fw-bold p-3">
+                        <i class="bi bi-hammer me-2"></i> Accéder à l'enchère
+                    </a>
+                    <a href="{{ build_leboncoin_url(annonce) }}" target="_blank" class="btn btn-warning text-white fw-bold">
+                        <i class="bi bi-search me-2"></i> Vérifier sur LeBonCoin
+                    </a>
                 </div>
             </div>
         </div>
     </div>
 </div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Injection sécurisée des données
+        const coutTotal = {{ prix_total }};
+        const marge = {{ marge }};
+        let coteMarche = coutTotal + marge;
+        
+        // Tentative d'utilisation d'une cote précise si dispo
+        {% if annonce.market_avg %}
+            coteMarche = {{ annonce.market_avg | float }};
+        {% endif %}
+
+        const ctx = document.getElementById('marketChart').getContext('2d');
+        new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: ['Coût Achat', 'Cote Marché'],
+                datasets: [{
+                    label: 'Montant (€)',
+                    data: [coutTotal, coteMarche],
+                    backgroundColor: [
+                        'rgba(37, 99, 235, 0.7)', // Bleu Primary
+                        'rgba(16, 185, 129, 0.7)'  // Vert Success
+                    ],
+                    borderColor: [
+                        'rgba(37, 99, 235, 1)',
+                        'rgba(16, 185, 129, 1)'
+                    ],
+                    borderWidth: 1,
+                    borderRadius: 4
+                }]
+            },
+            options: {
+                responsive: true,
+                plugins: {
+                    legend: { display: false },
+                    tooltip: {
+                        callbacks: {
+                            label: function(context) {
+                                return context.raw.toLocaleString('fr-FR') + ' €';
+                            }
+                        }
+                    }
+                },
+                scales: {
+                    y: { 
+                        beginAtZero: true,
+                        ticks: {
+                            callback: function(value) { return value + ' €'; }
+                        }
+                    }
+                }
+            }
+        });
+    });
+</script>
 {% endblock %}
