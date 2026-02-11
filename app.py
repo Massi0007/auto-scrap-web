@@ -1,5 +1,6 @@
 import os
 import math
+import re
 from datetime import datetime
 from flask import Flask, render_template, request, session, redirect, url_for, g
 import psycopg2
@@ -293,10 +294,25 @@ def detail(annonce_id):
     annonce = cursor.fetchone()
     if not annonce: return "Introuvable", 404
     
+    # --- MISE À JOUR : Gestion du prix marché (Prix unique OU fourchette legacy) ---
     try: 
         fp = annonce.get('fourchette_prix_marche', '')
-        if '-' in str(fp): parts = str(fp).replace('€', '').replace(' ', '').split('-'); annonce['market_avg'] = (float(parts[0]) + float(parts[1])) / 2
-    except: pass
+        # Nettoyage basique (enlève €, espaces)
+        cleaned_fp = str(fp).replace('€', '').replace(' ', '').strip()
+        
+        if '-' in cleaned_fp:
+            # Cas "Legacy" : Fourchette (ex: "4000-5000")
+            parts = cleaned_fp.split('-')
+            annonce['market_avg'] = (float(parts[0]) + float(parts[1])) / 2
+        elif cleaned_fp:
+            # Cas "Nouveau" : Prix unique (ex: "4500") ou chiffre pur
+            # On vérifie si c'est un nombre valide
+            if re.match(r'^\d+(\.\d+)?$', cleaned_fp):
+                annonce['market_avg'] = float(cleaned_fp)
+    except Exception as e: 
+        # En cas d'erreur de conversion, on ignore silencieusement
+        print(f"Erreur calcul market_avg: {e}")
+        pass
     
     return render_template('detail.html', annonce=annonce)
 

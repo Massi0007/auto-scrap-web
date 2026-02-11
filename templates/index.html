@@ -40,44 +40,50 @@
     .sidebar-wrapper::-webkit-scrollbar-thumb, 
     .filter-list-scroll::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
 
-    .filter-group { background: #f8fafc; padding: 0.75rem; border: 1px solid #e2e8f0; border-radius: 0.5rem; margin-bottom: 0.75rem; }
-    .filter-title { font-size: 0.7rem; font-weight: 800; text-transform: uppercase; color: #64748b; margin-bottom: 0.5rem; letter-spacing: 0.5px; }
+    /* Styles Filtres plus sobres */
+    .filter-group { background: #fff; padding: 0.75rem; border: 1px solid #e2e8f0; border-radius: 0.5rem; margin-bottom: 0.75rem; }
+    .filter-title { font-size: 0.7rem; font-weight: 700; text-transform: uppercase; color: #64748b; margin-bottom: 0.5rem; letter-spacing: 0.5px; }
     .filter-list-scroll { max-height: 150px; overflow-y: auto; }
 
-    /* Carte Véhicule */
-    .card-vehicule { transition: all 0.2s; border: 1px solid #e2e8f0; background: white; }
+    /* Carte Véhicule - Design épuré */
+    .card-vehicule { transition: all 0.2s; border: 1px solid #f1f5f9; background: white; box-shadow: 0 1px 2px rgba(0,0,0,0.05); }
     .card-vehicule:hover {
-        transform: translateY(-4px);
-        box-shadow: 0 10px 20px -5px rgba(0, 0, 0, 0.1);
-        border-color: var(--color-primary);
+        transform: translateY(-2px);
+        box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.05);
+        border-color: #cbd5e1;
         z-index: 10;
     }
-    .img-container { position: relative; height: 190px; overflow: hidden; background: #f1f5f9; border-bottom: 1px solid #f1f5f9; }
+    .img-container { position: relative; height: 190px; overflow: hidden; background: #f8fafc; border-bottom: 1px solid #f1f5f9; }
     .img-container img { width: 100%; height: 100%; object-fit: cover; transition: transform 0.5s; }
-    .card-vehicule:hover .img-container img { transform: scale(1.05); }
+    .card-vehicule:hover .img-container img { transform: scale(1.03); }
     
     .stat-row { display: flex; justify-content: space-between; font-size: 0.8rem; margin-bottom: 0.25rem; }
-    .progress-thin { height: 6px; border-radius: 3px; background-color: #e2e8f0; }
-    .info-tag { font-size: 0.7rem; background: #f1f5f9; color: #475569; padding: 2px 6px; border-radius: 4px; margin-right: 4px; display: inline-block; margin-bottom: 4px; border: 1px solid #e2e8f0; }
+    .progress-thin { height: 4px; border-radius: 2px; background-color: #f1f5f9; }
+    
+    /* Tags infos plus discrets */
+    .info-tag { font-size: 0.7rem; background: #f8fafc; color: #64748b; padding: 2px 6px; border-radius: 4px; margin-right: 4px; display: inline-block; margin-bottom: 4px; border: 1px solid #e2e8f0; }
+
+    /* Badges ROI Sobres (Style Outline) */
+    .badge-roi-high { background-color: white; color: #059669; border: 1px solid #a7f3d0; } /* Vert émeraude */
+    .badge-roi-med { background-color: white; color: #d97706; border: 1px solid #fcd34d; } /* Ambre */
 </style>
 
 <div class="row g-0">
     
-    <!-- BOUTON FILTRE MOBILE (Visible uniquement < lg) -->
+    <!-- BOUTON FILTRE MOBILE (Noir mat pour plus de sobriété) -->
     <div class="col-12 d-lg-none px-3 mobile-filter-btn">
-        <button class="btn btn-primary w-100 shadow-sm fw-bold" type="button" data-bs-toggle="offcanvas" data-bs-target="#sidebarFilters" aria-controls="sidebarFilters">
-            <i class="bi bi-funnel-fill"></i> Filtrer les annonces
+        <button class="btn btn-dark w-100 shadow-sm fw-bold" type="button" data-bs-toggle="offcanvas" data-bs-target="#sidebarFilters" aria-controls="sidebarFilters">
+            <i class="bi bi-funnel"></i> Filtres
         </button>
     </div>
 
     <!-- SIDEBAR / OFFCANVAS -->
-    <!-- Note: 'offcanvas-lg' permet de l'afficher comme une colonne normale sur grand écran -->
     <aside class="col-lg-3 col-xl-2 border-end bg-white">
         <div class="offcanvas-lg offcanvas-start bg-white h-100" tabindex="-1" id="sidebarFilters" aria-labelledby="sidebarFiltersLabel">
             
-            <!-- Header Mobile (Croix de fermeture) -->
+            <!-- Header Mobile -->
             <div class="offcanvas-header border-bottom">
-                <h5 class="offcanvas-title fw-bold" id="sidebarFiltersLabel"><i class="bi bi-sliders"></i> Filtres</h5>
+                <h5 class="offcanvas-title fw-bold" id="sidebarFiltersLabel">Filtres</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="offcanvas" data-bs-target="#sidebarFilters" aria-label="Close"></button>
             </div>
 
@@ -86,15 +92,15 @@
                 <div class="sidebar-wrapper ps-3 py-3 pe-3">
                     <form method="POST" action="{{ url_for('index') }}" id="filterForm">
                         <div class="d-flex justify-content-between align-items-center mb-3">
-                            <h6 class="fw-bold mb-0 text-dark d-none d-lg-block"><i class="bi bi-funnel-fill text-primary"></i> Filtres</h6>
-                            <a href="{{ url_for('reset_filters') }}" class="text-danger small text-decoration-none fw-bold"><i class="bi bi-x"></i> Reset</a>
+                            <h6 class="fw-bold mb-0 text-dark d-none d-lg-block"><i class="bi bi-filter"></i> Filtres</h6>
+                            <a href="{{ url_for('reset_filters') }}" class="text-secondary small text-decoration-none"><i class="bi bi-arrow-counterclockwise"></i> Reset</a>
                         </div>
 
                         <!-- Recherche Texte -->
                         <div class="mb-3">
                             <div class="input-group input-group-sm">
-                                <span class="input-group-text bg-light border-end-0"><i class="bi bi-search"></i></span>
-                                <input type="text" name="keyword" class="form-control border-start-0 bg-light" value="{{ f_keyword }}" placeholder="Modèle, mot-clé...">
+                                <span class="input-group-text bg-white border-end-0 text-muted"><i class="bi bi-search"></i></span>
+                                <input type="text" name="keyword" class="form-control border-start-0 bg-white" value="{{ f_keyword }}" placeholder="Rechercher...">
                             </div>
                         </div>
 
@@ -104,23 +110,23 @@
                             <div class="row g-1">
                                 <div class="col-6">
                                     <label class="form-label small text-muted mb-0" style="font-size: 0.65rem;">Du</label>
-                                    <input type="date" name="date_min" class="form-control form-control-sm" value="{{ f_date_min }}">
+                                    <input type="date" name="date_min" class="form-control form-control-sm text-secondary" value="{{ f_date_min }}">
                                 </div>
                                 <div class="col-6">
                                     <label class="form-label small text-muted mb-0" style="font-size: 0.65rem;">Au</label>
-                                    <input type="date" name="date_max" class="form-control form-control-sm" value="{{ f_date_max }}">
+                                    <input type="date" name="date_max" class="form-control form-control-sm text-secondary" value="{{ f_date_max }}">
                                 </div>
                             </div>
                         </div>
 
-                        <!-- Tri & ROI -->
-                        <div class="filter-group border-primary border-opacity-25 bg-primary bg-opacity-10">
-                            <div class="filter-title text-primary">Rentabilité & Tri</div>
-                            <select name="sort" class="form-select form-select-sm mb-2 border-primary" onchange="this.form.submit()">
-                                <option value="roi_desc" {% if f_sort == 'roi_desc' %}selected{% endif %}>🚀 Rentabilité (%)</option>
-                                <option value="marge_desc" {% if f_sort == 'marge_desc' %}selected{% endif %}>💰 Marge (€)</option>
-                                <option value="date_vente_asc" {% if f_sort == 'date_vente_asc' %}selected{% endif %}>📅 Date (Proche)</option>
-                                <option value="prix_asc" {% if f_sort == 'prix_asc' %}selected{% endif %}>€ Prix (Bas)</option>
+                        <!-- Tri & ROI (NETTOYÉ - PLUS DE COULEUR DE FOND) -->
+                        <div class="filter-group">
+                            <div class="filter-title">Rentabilité & Tri</div>
+                            <select name="sort" class="form-select form-select-sm mb-2 text-secondary" onchange="this.form.submit()">
+                                <option value="roi_desc" {% if f_sort == 'roi_desc' %}selected{% endif %}>Rentabilité (%)</option>
+                                <option value="marge_desc" {% if f_sort == 'marge_desc' %}selected{% endif %}>Marge (€)</option>
+                                <option value="date_vente_asc" {% if f_sort == 'date_vente_asc' %}selected{% endif %}>Date (Proche)</option>
+                                <option value="prix_asc" {% if f_sort == 'prix_asc' %}selected{% endif %}>Prix (Croissant)</option>
                             </select>
                             <div class="row g-1">
                                 <div class="col-6">
@@ -135,12 +141,12 @@
                         <!-- MARQUES -->
                         <div class="filter-group">
                             <div class="filter-title">Marques</div>
-                            <input type="text" id="marqueSearch" class="form-control form-control-sm mb-2" placeholder="Chercher une marque...">
+                            <input type="text" id="marqueSearch" class="form-control form-control-sm mb-2" placeholder="Filtrer..." style="font-size: 0.75rem;">
                             <div class="filter-list-scroll" id="marqueList">
                                 {% for m in marques %}
                                 <div class="form-check">
                                     <input class="form-check-input" type="checkbox" name="marque" value="{{ m }}" id="m-{{ loop.index }}" {% if m in f_marques %}checked{% endif %}>
-                                    <label class="form-check-label small text-truncate w-100" for="m-{{ loop.index }}">{{ m }}</label>
+                                    <label class="form-check-label small text-truncate w-100 text-secondary" for="m-{{ loop.index }}">{{ m }}</label>
                                 </div>
                                 {% endfor %}
                             </div>
@@ -157,7 +163,7 @@
                                 {% for b in boites %}
                                 <div class="form-check">
                                     <input class="form-check-input" type="checkbox" name="boite" value="{{ b }}" id="b-{{ loop.index }}" {% if b in f_boites %}checked{% endif %}>
-                                    <label class="form-check-label small" for="b-{{ loop.index }}">{{ b }}</label>
+                                    <label class="form-check-label small text-secondary" for="b-{{ loop.index }}">{{ b }}</label>
                                 </div>
                                 {% endfor %}
                             </div>
@@ -170,7 +176,7 @@
                                 {% for e in energies %}
                                 <div class="form-check">
                                     <input class="form-check-input" type="checkbox" name="energie" value="{{ e }}" id="e-{{ loop.index }}" {% if e in f_energies %}checked{% endif %}>
-                                    <label class="form-check-label small" for="e-{{ loop.index }}">{{ e }}</label>
+                                    <label class="form-check-label small text-secondary" for="e-{{ loop.index }}">{{ e }}</label>
                                 </div>
                                 {% endfor %}
                             </div>
@@ -180,7 +186,7 @@
                         <div class="filter-group">
                             <div class="filter-title">Compteur & Année</div>
                             <div class="mb-2">
-                                <input type="number" name="km_max" class="form-control form-control-sm" value="{{ f_km_max }}" placeholder="KM Max (ex: 150000)">
+                                <input type="number" name="km_max" class="form-control form-control-sm" value="{{ f_km_max }}" placeholder="KM Max">
                             </div>
                             <div class="row g-1">
                                 <div class="col-6">
@@ -193,8 +199,8 @@
                         </div>
 
                         <div class="d-grid mt-3 mb-5">
-                            <button type="submit" class="btn btn-primary btn-sm fw-bold shadow-sm">
-                                <i class="bi bi-check-lg"></i> Appliquer les filtres
+                            <button type="submit" class="btn btn-dark btn-sm fw-bold shadow-sm">
+                                Appliquer
                             </button>
                         </div>
                     </form>
@@ -207,12 +213,12 @@
     <main class="col-12 col-lg-9 col-xl-10 bg-light">
         <div class="p-3 p-md-4">
             <!-- Info Bar -->
-            <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center mb-4 bg-white p-3 rounded shadow-sm border">
+            <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center mb-4 bg-white p-3 rounded shadow-sm border border-light">
                 <div class="mb-3 mb-md-0">
-                    <h5 class="fw-bold mb-0">{{ total_annonces }} <span class="text-muted fs-6 fw-normal">résultats</span></h5>
+                    <h5 class="fw-bold mb-0 text-dark">{{ total_annonces }} <span class="text-muted fs-6 fw-normal">résultats</span></h5>
                     {% if f_marques or f_keyword %}
                     <div class="mt-1">
-                        {% for m in f_marques %} <span class="badge bg-secondary bg-opacity-10 text-secondary border border-secondary border-opacity-25">{{ m }}</span> {% endfor %}
+                        {% for m in f_marques %} <span class="badge bg-light text-dark border">{{ m }}</span> {% endfor %}
                     </div>
                     {% endif %}
                 </div>
@@ -222,11 +228,11 @@
                 <nav>
                     <ul class="pagination pagination-sm m-0">
                         <li class="page-item {% if current_page == 1 %}disabled{% endif %}">
-                            <a class="page-link border-0 bg-transparent" href="{{ url_for('index', page=current_page - 1) }}"><i class="bi bi-chevron-left"></i></a>
+                            <a class="page-link border-0 bg-transparent text-secondary" href="{{ url_for('index', page=current_page - 1) }}"><i class="bi bi-chevron-left"></i></a>
                         </li>
-                        <li class="page-item active"><span class="page-link border-0 fw-bold">{{ current_page }} <span class="fw-light text-muted">/ {{ total_pages }}</span></span></li>
+                        <li class="page-item active"><span class="page-link border-0 fw-bold bg-dark text-white rounded-circle mx-1" style="width: 30px; height: 30px; display: flex; align-items: center; justify-content: center;">{{ current_page }}</span></li>
                         <li class="page-item {% if current_page == total_pages %}disabled{% endif %}">
-                            <a class="page-link border-0 bg-transparent" href="{{ url_for('index', page=current_page + 1) }}"><i class="bi bi-chevron-right"></i></a>
+                            <a class="page-link border-0 bg-transparent text-secondary" href="{{ url_for('index', page=current_page + 1) }}"><i class="bi bi-chevron-right"></i></a>
                         </li>
                     </ul>
                 </nav>
@@ -245,29 +251,29 @@
                     {% endif %}
 
                 <div class="col">
-                    <div class="card h-100 card-vehicule rounded-3 overflow-hidden">
+                    <div class="card h-100 card-vehicule rounded-3 overflow-hidden border-0">
                         <a href="{{ url_for('detail', annonce_id=a.id) }}" class="text-decoration-none text-dark">
                             <div class="img-container">
                                 <img src="{{ a.lien_image_vehicule }}" loading="lazy" onerror="this.src='https://placehold.co/400x300?text=Image+Non+Dispo';">
                                 
-                                <!-- Badge ROI -->
+                                <!-- Badge ROI (Style Pro/Sobre) -->
                                 {% if roi >= 20 %}
-                                    <span class="position-absolute top-0 start-0 badge badge-roi-high m-2 shadow border border-white">
-                                        <i class="bi bi-stars"></i> Top {{ roi | format_percent }}
+                                    <span class="position-absolute top-0 start-0 badge badge-roi-high m-2 shadow-sm rounded-1 text-uppercase" style="letter-spacing: 0.5px; font-size: 0.65rem;">
+                                        <i class="bi bi-arrow-up-right"></i> Top {{ roi | format_percent }}
                                     </span>
                                 {% elif roi >= 10 %}
-                                    <span class="position-absolute top-0 start-0 badge badge-roi-med m-2 shadow border border-white">
-                                        <i class="bi bi-check-lg"></i> {{ roi | format_percent }}
+                                    <span class="position-absolute top-0 start-0 badge badge-roi-med m-2 shadow-sm rounded-1 text-uppercase" style="letter-spacing: 0.5px; font-size: 0.65rem;">
+                                        {{ roi | format_percent }}
                                     </span>
                                 {% endif %}
                                 
-                                <span class="position-absolute bottom-0 end-0 badge bg-dark bg-opacity-75 backdrop-blur m-2 small">
+                                <span class="position-absolute bottom-0 end-0 badge bg-dark bg-opacity-75 backdrop-blur m-2 small fw-normal">
                                     {{ a.maison_vente }}
                                 </span>
                             </div>
 
                             <div class="card-body p-3 d-flex flex-column">
-                                <h6 class="card-title fw-bold text-truncate mb-2" title="{{ a.titre_annonce }}">
+                                <h6 class="card-title fw-bold text-truncate mb-2 text-dark" title="{{ a.titre_annonce }}">
                                     {{ a.titre_annonce }}
                                 </h6>
                                 
@@ -285,37 +291,39 @@
                                     </div>
                                     {% if a.ville %}
                                     <div class="small text-muted mt-1 text-truncate">
-                                        <i class="bi bi-geo-alt-fill text-danger opacity-50"></i> {{ a.ville }}
+                                        {{ a.ville }}
                                     </div>
                                     {% endif %}
                                 </div>
 
-                                <!-- Bloc Financier -->
-                                <div class="mt-auto bg-light border rounded p-2 position-relative overflow-hidden">
-                                    <div class="stat-row">
-                                        <span class="text-muted">Investissement</span>
-                                        <span class="fw-bold">{{ prix_total | format_number }} €</span>
-                                    </div>
-                                    <div class="stat-row">
-                                        <span class="text-muted">Marge Est.</span>
-                                        <span class="fw-bold {% if roi > 10 %}text-success{% elif roi > 0 %}text-primary{% else %}text-danger{% endif %}">
-                                            {% if marge > 0 %}+{% endif %}{{ marge | format_number }} €
-                                        </span>
+                                <!-- Bloc Financier Épuré -->
+                                <div class="mt-auto pt-2 border-top border-light">
+                                    <div class="stat-row align-items-end">
+                                        <div>
+                                            <div class="text-muted" style="font-size: 0.7rem;">Investissement</div>
+                                            <div class="fw-bold text-dark">{{ prix_total | format_number }} €</div>
+                                        </div>
+                                        <div class="text-end">
+                                            <div class="text-muted" style="font-size: 0.7rem;">Marge</div>
+                                            <div class="fw-bold {% if roi > 10 %}text-success{% elif roi > 0 %}text-dark{% else %}text-muted{% endif %}">
+                                                {% if marge > 0 %}+{% endif %}{{ marge | format_number }} €
+                                            </div>
+                                        </div>
                                     </div>
                                     
-                                    <!-- Barre visuelle -->
-                                    <div class="progress progress-thin mt-2 bg-white">
+                                    <!-- Barre visuelle (Moins saturée) -->
+                                    <div class="progress progress-thin mt-2 bg-light">
                                         {% set width = roi if roi < 100 else 100 %}
                                         {% set width = width if width > 0 else 5 %}
-                                        <div class="progress-bar {% if roi > 15 %}bg-success{% elif roi > 5 %}bg-warning{% else %}bg-danger{% endif %}" 
+                                        <div class="progress-bar {% if roi > 15 %}bg-success{% elif roi > 5 %}bg-warning{% else %}bg-secondary{% endif %} opacity-75" 
                                              role="progressbar" 
                                              style="width: {{ width }}%"></div>
                                     </div>
                                 </div>
                                 
                                 <div class="text-end mt-2">
-                                    <small class="text-muted fst-italic" style="font-size: 0.7rem;">
-                                        Vente le {{ a.date_vente_ts | format_datetime('%d/%m') }}
+                                    <small class="text-muted" style="font-size: 0.65rem;">
+                                        {{ a.date_vente_ts | format_datetime('%d/%m') }}
                                     </small>
                                 </div>
                             </div>
@@ -324,8 +332,8 @@
                 </div>
                 {% else %}
                 <div class="col-12 text-center py-5">
-                    <div class="text-muted display-1"><i class="bi bi-search"></i></div>
-                    <h4 class="mt-3">Aucun véhicule trouvé</h4>
+                    <div class="text-muted display-1 opacity-25"><i class="bi bi-search"></i></div>
+                    <h4 class="mt-3 text-dark">Aucun véhicule trouvé</h4>
                     <p class="text-muted">Essayez d'élargir vos critères de recherche.</p>
                 </div>
                 {% endfor %}
@@ -336,11 +344,11 @@
             <nav class="mt-5 d-flex justify-content-center">
                 <ul class="pagination">
                     <li class="page-item {% if current_page == 1 %}disabled{% endif %}">
-                        <a class="page-link" href="{{ url_for('index', page=current_page - 1) }}">Précédent</a>
+                        <a class="page-link border bg-white text-dark mx-1 rounded" href="{{ url_for('index', page=current_page - 1) }}">Précédent</a>
                     </li>
-                    <li class="page-item active"><span class="page-link">{{ current_page }}</span></li>
+                    <li class="page-item disabled"><span class="page-link border-0 bg-transparent">{{ current_page }} / {{ total_pages }}</span></li>
                     <li class="page-item {% if current_page == total_pages %}disabled{% endif %}">
-                        <a class="page-link" href="{{ url_for('index', page=current_page + 1) }}">Suivant</a>
+                        <a class="page-link border bg-white text-dark mx-1 rounded" href="{{ url_for('index', page=current_page + 1) }}">Suivant</a>
                     </li>
                 </ul>
             </nav>
