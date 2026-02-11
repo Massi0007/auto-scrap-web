@@ -5,8 +5,6 @@
 {% block content %}
 <style>
     /* --- CSS RESPONSIVE & SIDEBAR --- */
-    
-    /* Sur Desktop : Sidebar sticky classique */
     @media (min-width: 992px) {
         .sidebar-wrapper {
             position: sticky; 
@@ -15,23 +13,12 @@
             overflow-y: auto;
             padding-right: 10px;
         }
-        /* Masquer le header de l'offcanvas sur desktop */
         .offcanvas-header { display: none; }
     }
 
-    /* Sur Mobile : Ajustements pour l'Offcanvas */
     @media (max-width: 991.98px) {
-        .sidebar-wrapper {
-            height: 100%; /* L'offcanvas gère le scroll */
-            overflow-y: auto;
-        }
-        /* Ajustement du bouton flottant si besoin */
-        .mobile-filter-btn {
-            position: sticky;
-            top: 70px; /* Juste sous la navbar */
-            z-index: 99;
-            margin-bottom: 1rem;
-        }
+        .sidebar-wrapper { height: 100%; overflow-y: auto; }
+        .mobile-filter-btn { position: sticky; top: 70px; z-index: 99; margin-bottom: 1rem; }
     }
 
     /* Scrollbar fine */
@@ -40,12 +27,16 @@
     .sidebar-wrapper::-webkit-scrollbar-thumb, 
     .filter-list-scroll::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
 
-    /* Styles Filtres plus sobres */
+    /* Styles Filtres */
     .filter-group { background: #fff; padding: 0.75rem; border: 1px solid #e2e8f0; border-radius: 0.5rem; margin-bottom: 0.75rem; }
     .filter-title { font-size: 0.7rem; font-weight: 700; text-transform: uppercase; color: #64748b; margin-bottom: 0.5rem; letter-spacing: 0.5px; }
     .filter-list-scroll { max-height: 150px; overflow-y: auto; }
+    
+    /* Petits liens d'action (Tout/Rien) */
+    .filter-action-link { font-size: 0.65rem; text-decoration: none; cursor: pointer; color: #2563eb; }
+    .filter-action-link:hover { text-decoration: underline; }
 
-    /* Carte Véhicule - Design épuré */
+    /* Carte Véhicule */
     .card-vehicule { transition: all 0.2s; border: 1px solid #f1f5f9; background: white; box-shadow: 0 1px 2px rgba(0,0,0,0.05); }
     .card-vehicule:hover {
         transform: translateY(-2px);
@@ -59,18 +50,16 @@
     
     .stat-row { display: flex; justify-content: space-between; font-size: 0.8rem; margin-bottom: 0.25rem; }
     .progress-thin { height: 4px; border-radius: 2px; background-color: #f1f5f9; }
-    
-    /* Tags infos plus discrets */
     .info-tag { font-size: 0.7rem; background: #f8fafc; color: #64748b; padding: 2px 6px; border-radius: 4px; margin-right: 4px; display: inline-block; margin-bottom: 4px; border: 1px solid #e2e8f0; }
 
-    /* Badges ROI Sobres (Style Outline) */
-    .badge-roi-high { background-color: white; color: #059669; border: 1px solid #a7f3d0; } /* Vert émeraude */
-    .badge-roi-med { background-color: white; color: #d97706; border: 1px solid #fcd34d; } /* Ambre */
+    /* Badges ROI */
+    .badge-roi-high { background-color: white; color: #059669; border: 1px solid #a7f3d0; }
+    .badge-roi-med { background-color: white; color: #d97706; border: 1px solid #fcd34d; }
 </style>
 
 <div class="row g-0">
     
-    <!-- BOUTON FILTRE MOBILE (Noir mat pour plus de sobriété) -->
+    <!-- BOUTON FILTRE MOBILE -->
     <div class="col-12 d-lg-none px-3 mobile-filter-btn">
         <button class="btn btn-dark w-100 shadow-sm fw-bold" type="button" data-bs-toggle="offcanvas" data-bs-target="#sidebarFilters" aria-controls="sidebarFilters">
             <i class="bi bi-funnel"></i> Filtres
@@ -81,13 +70,11 @@
     <aside class="col-lg-3 col-xl-2 border-end bg-white">
         <div class="offcanvas-lg offcanvas-start bg-white h-100" tabindex="-1" id="sidebarFilters" aria-labelledby="sidebarFiltersLabel">
             
-            <!-- Header Mobile -->
             <div class="offcanvas-header border-bottom">
                 <h5 class="offcanvas-title fw-bold" id="sidebarFiltersLabel">Filtres</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="offcanvas" data-bs-target="#sidebarFilters" aria-label="Close"></button>
             </div>
 
-            <!-- Contenu Sidebar -->
             <div class="offcanvas-body p-0">
                 <div class="sidebar-wrapper ps-3 py-3 pe-3">
                     <form method="POST" action="{{ url_for('index') }}" id="filterForm">
@@ -119,7 +106,27 @@
                             </div>
                         </div>
 
-                        <!-- Tri & ROI (NETTOYÉ - PLUS DE COULEUR DE FOND) -->
+                        <!-- MAISONS DE VENTE (NOUVEAU) -->
+                        <div class="filter-group">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div class="filter-title mb-0">Maisons de Vente</div>
+                                <div>
+                                    <span class="filter-action-link me-1" onclick="toggleCheckboxes('maisonList', true)">Tout</span>
+                                    <span class="text-muted" style="font-size: 0.65rem;">/</span>
+                                    <span class="filter-action-link ms-1" onclick="toggleCheckboxes('maisonList', false)">Rien</span>
+                                </div>
+                            </div>
+                            <div class="filter-list-scroll mt-2" id="maisonList">
+                                {% for m in maisons %}
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" name="maison_vente" value="{{ m }}" id="house-{{ loop.index }}" {% if m in f_maisons %}checked{% endif %}>
+                                    <label class="form-check-label small text-truncate w-100 text-secondary" for="house-{{ loop.index }}">{{ m }}</label>
+                                </div>
+                                {% endfor %}
+                            </div>
+                        </div>
+
+                        <!-- Rentabilité & Tri -->
                         <div class="filter-group">
                             <div class="filter-title">Rentabilité & Tri</div>
                             <select name="sort" class="form-select form-select-sm mb-2 text-secondary" onchange="this.form.submit()">
@@ -216,11 +223,16 @@
             <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center mb-4 bg-white p-3 rounded shadow-sm border border-light">
                 <div class="mb-3 mb-md-0">
                     <h5 class="fw-bold mb-0 text-dark">{{ total_annonces }} <span class="text-muted fs-6 fw-normal">résultats</span></h5>
-                    {% if f_marques or f_keyword %}
+                    
+                    <!-- Badges Filtres Actifs -->
                     <div class="mt-1">
-                        {% for m in f_marques %} <span class="badge bg-light text-dark border">{{ m }}</span> {% endfor %}
+                        {% if f_marques %}
+                            {% for m in f_marques %} <span class="badge bg-light text-dark border">{{ m }}</span> {% endfor %}
+                        {% endif %}
+                        {% if f_maisons %}
+                            {% for m in f_maisons %} <span class="badge bg-primary bg-opacity-10 text-primary border border-primary border-opacity-25">{{ m }}</span> {% endfor %}
+                        {% endif %}
                     </div>
-                    {% endif %}
                 </div>
                 
                 <!-- Pagination -->
@@ -242,7 +254,7 @@
             <!-- GRILLE CARTES -->
             <div class="row row-cols-1 row-cols-sm-2 row-cols-lg-3 row-cols-xl-4 g-3 g-xl-4">
                 {% for a in annonces %}
-                    {# Calcul ROI Template #}
+                    {# Calcul ROI #}
                     {% set prix_total = a.prix_max_frais_inclus | default(0) | float %}
                     {% set marge = a.marge_estimee_min | default(0) | float %}
                     {% set roi = 0 %}
@@ -256,7 +268,6 @@
                             <div class="img-container">
                                 <img src="{{ a.lien_image_vehicule }}" loading="lazy" onerror="this.src='https://placehold.co/400x300?text=Image+Non+Dispo';">
                                 
-                                <!-- Badge ROI (Style Pro/Sobre) -->
                                 {% if roi >= 20 %}
                                     <span class="position-absolute top-0 start-0 badge badge-roi-high m-2 shadow-sm rounded-1 text-uppercase" style="letter-spacing: 0.5px; font-size: 0.65rem;">
                                         <i class="bi bi-arrow-up-right"></i> Top {{ roi | format_percent }}
@@ -277,7 +288,6 @@
                                     {{ a.titre_annonce }}
                                 </h6>
                                 
-                                <!-- Données enrichies -->
                                 <div class="mb-3">
                                     <div>
                                         <span class="info-tag">{{ a.annee }}</span>
@@ -296,7 +306,6 @@
                                     {% endif %}
                                 </div>
 
-                                <!-- Bloc Financier Épuré -->
                                 <div class="mt-auto pt-2 border-top border-light">
                                     <div class="stat-row align-items-end">
                                         <div>
@@ -310,8 +319,6 @@
                                             </div>
                                         </div>
                                     </div>
-                                    
-                                    <!-- Barre visuelle (Moins saturée) -->
                                     <div class="progress progress-thin mt-2 bg-light">
                                         {% set width = roi if roi < 100 else 100 %}
                                         {% set width = width if width > 0 else 5 %}
@@ -339,7 +346,6 @@
                 {% endfor %}
             </div>
             
-            <!-- Pagination Bas -->
             {% if total_pages > 1 %}
             <nav class="mt-5 d-flex justify-content-center">
                 <ul class="pagination">
@@ -361,25 +367,28 @@
 {% block scripts %}
 <script>
     document.addEventListener('DOMContentLoaded', function() {
-        // Recherche rapide dans la liste des marques (JS pur)
+        // Recherche Marques
         const searchInput = document.getElementById('marqueSearch');
         const listContainer = document.getElementById('marqueList');
-        
         if (searchInput && listContainer) {
             searchInput.addEventListener('keyup', function() {
                 const filter = this.value.toLowerCase();
                 const items = listContainer.querySelectorAll('.form-check');
-                
                 items.forEach(function(item) {
                     const label = item.querySelector('label').textContent.toLowerCase();
-                    if (label.includes(filter)) {
-                        item.style.display = "";
-                    } else {
-                        item.style.display = "none";
-                    }
+                    item.style.display = label.includes(filter) ? "" : "none";
                 });
             });
         }
     });
+
+    // Fonction Globale pour Tout Cocher / Décocher
+    function toggleCheckboxes(containerId, checkState) {
+        const container = document.getElementById(containerId);
+        if (container) {
+            const checkboxes = container.querySelectorAll('input[type="checkbox"]');
+            checkboxes.forEach(cb => cb.checked = checkState);
+        }
+    }
 </script>
 {% endblock %}
