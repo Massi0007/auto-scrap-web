@@ -162,6 +162,7 @@ def index():
     f_maisons = filters.get('maison_vente', [])
     f_energies = filters.get('energie', [])
     f_boites = filters.get('boite', [])
+    f_has_price = filters.get('has_price', ['all'])[0] # Nouveau filtre Prix (all, yes, no)
     
     f_annee_min = filters.get('annee_min', [''])[0]
     f_annee_max = filters.get('annee_max', [''])[0]
@@ -226,6 +227,12 @@ def index():
     if f_energies:
         base_sql += f" AND energie IN ({','.join(['%s']*len(f_energies))})"; params.extend(f_energies)
 
+    # Filtre Avec/Sans Prix (Nouveau)
+    if f_has_price == 'yes':
+        base_sql += " AND prix_max_frais_inclus > 0"
+    elif f_has_price == 'no':
+        base_sql += " AND (prix_max_frais_inclus IS NULL OR prix_max_frais_inclus = 0)"
+
     if f_boites:
         has_none, clean_boites = 'None' in f_boites, [b for b in f_boites if b != 'None']
         c = []
@@ -278,7 +285,7 @@ def index():
         current_page=page, total_pages=math.ceil(total_annonces/per_page) if total_annonces else 1, total_annonces=total_annonces,
         f_keyword=f_keyword, f_sort=f_sort, f_marques=f_marques, f_maisons=f_maisons, f_energies=f_energies, f_boites=f_boites,
         f_annee_min=f_annee_min, f_annee_max=f_annee_max, f_km_max=f_km_max, f_prix_max=f_prix_max, f_marge_min=f_marge_min,
-        f_date_min=f_date_min, f_date_max=f_date_max,
+        f_date_min=f_date_min, f_date_max=f_date_max, f_has_price=f_has_price,
         current_vente_id=get_vente_id
     )
 

@@ -106,7 +106,22 @@
                             </div>
                         </div>
 
-                        <!-- MAISONS DE VENTE (NOUVEAU) -->
+                        <!-- FILTRE PRIX ESTIMATION (NOUVEAU) -->
+                        <div class="filter-group">
+                            <div class="filter-title">Prix Estimation</div>
+                            <div class="btn-group w-100" role="group" aria-label="Filtre Prix">
+                                <input type="radio" class="btn-check" name="has_price" id="price-all" value="all" {% if f_has_price == 'all' %}checked{% endif %} onchange="this.form.submit()">
+                                <label class="btn btn-outline-secondary btn-sm" for="price-all">Tous</label>
+                              
+                                <input type="radio" class="btn-check" name="has_price" id="price-yes" value="yes" {% if f_has_price == 'yes' %}checked{% endif %} onchange="this.form.submit()">
+                                <label class="btn btn-outline-secondary btn-sm" for="price-yes">Avec</label>
+                              
+                                <input type="radio" class="btn-check" name="has_price" id="price-no" value="no" {% if f_has_price == 'no' %}checked{% endif %} onchange="this.form.submit()">
+                                <label class="btn btn-outline-secondary btn-sm" for="price-no">Sans</label>
+                            </div>
+                        </div>
+
+                        <!-- MAISONS DE VENTE -->
                         <div class="filter-group">
                             <div class="d-flex justify-content-between align-items-center">
                                 <div class="filter-title mb-0">Maisons de Vente</div>
@@ -226,6 +241,9 @@
                     
                     <!-- Badges Filtres Actifs -->
                     <div class="mt-1">
+                        {% if f_has_price == 'yes' %} <span class="badge bg-success bg-opacity-10 text-success border border-success border-opacity-25">Avec Prix</span>
+                        {% elif f_has_price == 'no' %} <span class="badge bg-secondary bg-opacity-10 text-secondary border border-secondary border-opacity-25">Sans Prix</span> {% endif %}
+                        
                         {% if f_marques %}
                             {% for m in f_marques %} <span class="badge bg-light text-dark border">{{ m }}</span> {% endfor %}
                         {% endif %}
@@ -268,11 +286,11 @@
                             <div class="img-container">
                                 <img src="{{ a.lien_image_vehicule }}" loading="lazy" onerror="this.src='https://placehold.co/400x300?text=Image+Non+Dispo';">
                                 
-                                {% if roi >= 20 %}
+                                {% if roi >= 20 and prix_total > 0 %}
                                     <span class="position-absolute top-0 start-0 badge badge-roi-high m-2 shadow-sm rounded-1 text-uppercase" style="letter-spacing: 0.5px; font-size: 0.65rem;">
                                         <i class="bi bi-arrow-up-right"></i> Top {{ roi | format_percent }}
                                     </span>
-                                {% elif roi >= 10 %}
+                                {% elif roi >= 10 and prix_total > 0 %}
                                     <span class="position-absolute top-0 start-0 badge badge-roi-med m-2 shadow-sm rounded-1 text-uppercase" style="letter-spacing: 0.5px; font-size: 0.65rem;">
                                         {{ roi | format_percent }}
                                     </span>
@@ -307,31 +325,38 @@
                                 </div>
 
                                 <div class="mt-auto pt-2 border-top border-light">
-                                    <div class="stat-row align-items-end">
-                                        <div>
-                                            <div class="text-muted" style="font-size: 0.7rem;">Investissement</div>
-                                            <div class="fw-bold text-dark">{{ prix_total | format_number }} €</div>
-                                        </div>
-                                        <div class="text-end">
-                                            <div class="text-muted" style="font-size: 0.7rem;">Marge</div>
-                                            <div class="fw-bold {% if roi > 10 %}text-success{% elif roi > 0 %}text-dark{% else %}text-muted{% endif %}">
-                                                {% if marge > 0 %}+{% endif %}{{ marge | format_number }} €
+                                    {% if prix_total > 0 %}
+                                        <div class="stat-row align-items-end">
+                                            <div>
+                                                <div class="text-muted" style="font-size: 0.7rem;">Investissement</div>
+                                                <div class="fw-bold text-dark">{{ prix_total | format_number }} €</div>
+                                            </div>
+                                            <div class="text-end">
+                                                <div class="text-muted" style="font-size: 0.7rem;">Marge</div>
+                                                <div class="fw-bold {% if roi > 10 %}text-success{% elif roi > 0 %}text-dark{% else %}text-muted{% endif %}">
+                                                    {% if marge > 0 %}+{% endif %}{{ marge | format_number }} €
+                                                </div>
                                             </div>
                                         </div>
-                                    </div>
-                                    <div class="progress progress-thin mt-2 bg-light">
-                                        {% set width = roi if roi < 100 else 100 %}
-                                        {% set width = width if width > 0 else 5 %}
-                                        <div class="progress-bar {% if roi > 15 %}bg-success{% elif roi > 5 %}bg-warning{% else %}bg-secondary{% endif %} opacity-75" 
-                                             role="progressbar" 
-                                             style="width: {{ width }}%"></div>
-                                    </div>
+                                        <div class="progress progress-thin mt-2 bg-light">
+                                            {% set width = roi if roi < 100 else 100 %}
+                                            {% set width = width if width > 0 else 5 %}
+                                            <div class="progress-bar {% if roi > 15 %}bg-success{% elif roi > 5 %}bg-warning{% else %}bg-secondary{% endif %} opacity-75" 
+                                                 role="progressbar" 
+                                                 style="width: {{ width }}%"></div>
+                                        </div>
+                                    {% else %}
+                                        <div class="d-flex align-items-center justify-content-center py-2" style="height: 56px;">
+                                            <span class="badge bg-light text-secondary border fw-normal">
+                                                <i class="bi bi-hourglass"></i> Prix non communiqué
+                                            </span>
+                                        </div>
+                                    {% endif %}
                                 </div>
                                 
-                                <div class="text-end mt-2">
-                                    <small class="text-muted" style="font-size: 0.65rem;">
-                                        {{ a.date_vente_ts | format_datetime('%d/%m') }}
-                                    </small>
+                                <div class="d-flex justify-content-between align-items-center mt-3 pt-2 border-top border-light text-muted" style="font-size: 0.65rem;">
+                                    <span><i class="bi bi-calendar-event"></i> {{ a.date_vente_ts | format_datetime('%d/%m') }}</span>
+                                    <span><i class="bi bi-clock"></i> {{ a.date_vente_ts | format_datetime('%H:%M') }}</span>
                                 </div>
                             </div>
                         </a>
